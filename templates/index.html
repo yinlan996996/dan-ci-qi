@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>单词筛查背诵器</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ─── 顶部栏 ─── -->
+<header class="app-header">
+  <h1>📖 单词筛查背诵器</h1>
+  <span id="word-count-badge" class="badge">0 词</span>
+</header>
+
+<!-- ─── 桌面端导航栏 ─── -->
+<nav class="desktop-nav">
+  <button class="nav-btn-d active" data-tab="import">📥 导入单词</button>
+  <button class="nav-btn-d" data-tab="quiz">🎯 开始筛查</button>
+  <button class="nav-btn-d" data-tab="errors">📕 错题本</button>
+  <button class="nav-btn-d" data-tab="export">📤 导出背诵表</button>
+</nav>
+
+<!-- ─── 主内容区 ─── -->
+<main class="app-content">
+
+  <!-- ═══ Tab 1：导入单词 ═══ -->
+  <section id="tab-import" class="tab-page active">
+    <h2 class="tab-title">📥 导入单词</h2>
+
+    <!-- 方式1：文件上传 -->
+    <div class="card">
+      <h3>📁 上传文件</h3>
+      <p class="hint">支持 .xlsx / .csv / .json</p>
+      <label class="upload-area" id="upload-area">
+        <input type="file" id="file-input" accept=".xlsx,.csv,.json" hidden>
+        <span class="upload-icon">⬆️</span>
+        <span>点击选择文件或拖拽到此处</span>
+      </label>
+      <div id="file-name" class="file-name"></div>
+    </div>
+
+    <!-- 方式2：文本粘贴 -->
+    <div class="card">
+      <h3>📝 粘贴文本</h3>
+      <p class="hint">每行一个单词，英文和中文用空格或 Tab 分隔<br>例：apple 苹果</p>
+      <textarea id="paste-text" rows="5" placeholder="apple 苹果&#10;book 书&#10;cat 猫&#10;dog 狗"></textarea>
+      <button class="btn btn-primary" id="btn-paste-import">导入文本</button>
+    </div>
+
+    <!-- 方式3：手动添加 -->
+    <div class="card">
+      <h3>✏️ 手动添加</h3>
+      <div class="manual-add-row">
+        <input type="text" id="manual-english" placeholder="英文" class="input-half" autocomplete="off">
+        <input type="text" id="manual-chinese" placeholder="中文" class="input-half" autocomplete="off">
+        <button class="btn btn-primary btn-sm" id="btn-manual-add">添加</button>
+      </div>
+    </div>
+
+    <!-- 已有单词列表 -->
+    <div class="card">
+      <div class="card-header">
+        <h3>📋 已有单词 <span id="word-list-count"></span></h3>
+        <button class="btn btn-danger-outline btn-sm" id="btn-clear-all">清空全部</button>
+      </div>
+      <div id="word-list" class="word-list">
+        <p class="empty-hint">暂无单词，请导入或添加</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Tab 2：开始筛查 ═══ -->
+  <section id="tab-quiz" class="tab-page">
+    <h2 class="tab-title">🎯 单词筛查</h2>
+
+    <!-- 筛查设置 -->
+    <div id="quiz-setup" class="card">
+      <div class="quiz-mode-select">
+        <label class="radio-card" id="radio-all">
+          <input type="radio" name="quiz-mode" value="all" checked>
+          <span class="radio-label">📚 全部单词</span>
+        </label>
+        <label class="radio-card" id="radio-errors">
+          <input type="radio" name="quiz-mode" value="errors">
+          <span class="radio-label">🔴 仅错题</span>
+        </label>
+      </div>
+      <button class="btn btn-primary btn-lg btn-block" id="btn-start-quiz">
+        开始筛查
+      </button>
+      <p class="hint center" id="quiz-word-count"></p>
+    </div>
+
+    <!-- 答题界面 -->
+    <div id="quiz-active" class="hidden">
+      <button class="btn btn-sm btn-outline" id="btn-quit-quiz" style="margin-bottom:12px;">← 退出筛查</button>
+      <div class="quiz-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <span class="progress-text" id="progress-text">0/0</span>
+      </div>
+
+      <div class="quiz-word-card" id="quiz-word-card">
+        <p class="quiz-label">请选择以下单词的中文释义：</p>
+        <p class="quiz-word" id="quiz-word">——</p>
+      </div>
+
+      <div class="quiz-options" id="quiz-options">
+        <!-- 动态生成4个选项按钮 -->
+      </div>
+
+      <div class="quiz-feedback hidden" id="quiz-feedback">
+        <p class="feedback-icon" id="feedback-icon"></p>
+        <p class="feedback-text" id="feedback-text"></p>
+        <p class="feedback-answer" id="feedback-answer"></p>
+      </div>
+
+      <button class="btn btn-primary btn-block hidden" id="btn-next">下一题</button>
+    </div>
+
+    <!-- 完成界面 -->
+    <div id="quiz-finished" class="card hidden">
+      <div class="result-icon">🎉</div>
+      <h3>筛查完成！</h3>
+      <div class="result-stats">
+        <div class="stat-item">
+          <span class="stat-num" id="result-total">0</span>
+          <span class="stat-label">总题数</span>
+        </div>
+        <div class="stat-item stat-correct">
+          <span class="stat-num" id="result-correct">0</span>
+          <span class="stat-label">正确</span>
+        </div>
+        <div class="stat-item stat-wrong">
+          <span class="stat-num" id="result-wrong">0</span>
+          <span class="stat-label">错误</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="result-accuracy">0%</span>
+          <span class="stat-label">正确率</span>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-primary" id="btn-retry-errors">🔄 再来一轮（仅错题）</button>
+        <button class="btn btn-outline" id="btn-new-quiz">📝 重新筛查全部</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Tab 3：错题本 ═══ -->
+  <section id="tab-errors" class="tab-page">
+    <h2 class="tab-title">📕 错题本</h2>
+    <div id="error-book">
+      <p class="empty-hint" id="errors-empty">还没有错题，先去筛查吧！</p>
+      <table class="data-table hidden" id="errors-table">
+        <thead>
+          <tr>
+            <th>英文</th>
+            <th>中文</th>
+            <th>错误次数</th>
+          </tr>
+        </thead>
+        <tbody id="errors-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══ Tab 4：导出 ═══ -->
+  <section id="tab-export" class="tab-page">
+    <h2 class="tab-title">📤 导出背诵表</h2>
+    <div class="card">
+      <div class="quiz-mode-select">
+        <label class="radio-card" id="radio-export-errors">
+          <input type="radio" name="export-type" value="errors" checked>
+          <span class="radio-label">🔴 仅错题</span>
+        </label>
+        <label class="radio-card" id="radio-export-all">
+          <input type="radio" name="export-type" value="all">
+          <span class="radio-label">📚 全部单词</span>
+        </label>
+      </div>
+      <p class="hint center" id="export-count"></p>
+    </div>
+    <div class="export-actions">
+      <button class="btn btn-primary btn-lg btn-block" id="btn-export-pdf">
+        📄 导出 PDF
+      </button>
+      <button class="btn btn-outline btn-lg btn-block" id="btn-export-word">
+        📝 导出 Word
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ─── 底部导航栏 ─── -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="import">
+    <span class="nav-icon">📥</span>
+    <span class="nav-text">导入</span>
+  </button>
+  <button class="nav-btn" data-tab="quiz">
+    <span class="nav-icon">🎯</span>
+    <span class="nav-text">筛查</span>
+  </button>
+  <button class="nav-btn" data-tab="errors">
+    <span class="nav-icon">📕</span>
+    <span class="nav-text">错题本</span>
+  </button>
+  <button class="nav-btn" data-tab="export">
+    <span class="nav-icon">📤</span>
+    <span class="nav-text">导出</span>
+  </button>
+</nav>
+
+<!-- Toast 提示 -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="/static/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(function() {
+    console.log('SW 已注册，支持离线使用');
+  }).catch(function(err) {
+    console.log('SW 注册失败:', err);
+  });
+}
+</script>
+</body>
+</html>

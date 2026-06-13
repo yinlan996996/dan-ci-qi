@@ -1,0 +1,14 @@
+# Database
+*.db
+
+# Python
+__pycache__/
+*.pyc
+
+# CSV vocabulary files (too large, users can generate their own)
+*核心词汇*.csv
+*CET6*.csv
+*TOEFL*.csv
+
+# Backup files
+*backup*

@@ -1,0 +1,9 @@
+{
+  "name": "单词器",
+  "short_name": "单词器",
+  "start_url": "/offline",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#4A90D9",
+  "icons": []
+}
