@@ -6,19 +6,48 @@
 
 ## 🚀 快速开始
 
-```bash
-# 1. 下载项目
+### 安装 Python
+
+先去 https://python.org 下载安装 Python，**安装时勾选 ✅ Add Python to PATH**。
+
+### 下载并启动
+
+打开 VS Code → 终端 → 新建终端，依次输入：
+
+```powershell
 git clone https://github.com/yinlan996996/dan-ci-qi.git
 cd dan-ci-qi
-
-# 2. 安装依赖（需要 Python 3）
 pip install -r requirements.txt
-
-# 3. 启动
 python app.py
 ```
 
-浏览器打开 `http://localhost:5000` 即可使用。
+看到「启动成功」后，浏览器打开 `http://localhost:5000`。
+
+## 💻 电脑版使用
+
+### 导入单词
+
+- **上传 CSV**：准备好 `english,chinese` 格式的 CSV 文件，点击上传
+- **粘贴文本**：每行 `英文 中文`，点导入
+- **手动添加**：填英文 + 中文，点添加
+
+### 筛查测试
+
+1. 选择「全部单词」或「仅错题」
+2. 点开始筛查 → 看英文选中文释义（四选一）
+3. 答对 ✅ 答错 ❌，自动滚到下一题按钮
+4. 做完显示成绩，可选「再来一轮」
+
+### 错题本
+
+自动记录所有答错的单词，按错误次数排序。
+
+### 导出
+
+- **PDF**：点导出 PDF，下载带表格的 PDF 文件
+- **Word**：点导出 Word，下载 .docx 表格文件
+
+表格列：序号 | 英文 | 中文 | 掌握状态 | 错误次数
 
 ---
 
