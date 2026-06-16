@@ -53,7 +53,21 @@ python app.py
 
 ## 📱 iPhone 使用
 
-### 在线版（需同一网络）
+### 推荐：GitHub Pages 版（不依赖电脑）
+
+这个版本适合长期放在 iPhone 上使用。它打开的是 GitHub 的 HTTPS 地址，不依赖电脑热点，也不需要电脑一直开着。
+
+首次部署后，iPhone Safari 打开：
+
+```
+https://yinlan996996.github.io/dan-ci-qi/
+```
+
+然后点底部分享 ⬆️ → **添加到主屏幕**。
+
+> 首次打开需要联网。打开后，词汇和答题进度保存在 iPhone 本地。
+
+### 本地在线版（需同一网络）
 
 电脑启动 `python app.py` 后，iPhone Safari 打开：
 
@@ -63,12 +77,12 @@ http://<电脑IP>:5000
 
 电脑 IP 查看方式：终端输入 `ipconfig`，找 IPv4 地址。
 
-### 离线版
+### 本地离线版
 
 1. iPhone Safari 打开 `http://<电脑IP>:5000/offline`
 2. 页面自动同步词汇到手机
 3. 点底部分享 ⬆️ → **添加到主屏幕**
-4. 之后桌面图标打开，保留 Safari 标签不关，切网络也能用
+4. 这个方式仍然依赖首次访问电脑地址，不如 GitHub Pages 稳定
 
 ---
 
