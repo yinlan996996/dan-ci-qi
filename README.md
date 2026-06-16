@@ -6,11 +6,14 @@
 
 ## 🚀 快速开始
 
-### 安装 Python
+### 推荐使用方式
+
+- **iPhone / iPad**：直接打开 GitHub Pages
+- **电脑本地使用**：运行 `python app.py`
+
+### 电脑本地启动
 
 先去 https://python.org 下载安装 Python，**安装时勾选 ✅ Add Python to PATH**。
-
-### 下载并启动
 
 打开 VS Code → 终端 → 新建终端，依次输入：
 
@@ -21,7 +24,11 @@ pip install -r requirements.txt
 python app.py
 ```
 
-看到「启动成功」后，浏览器打开 `http://localhost:5000`。
+看到「启动成功」后，浏览器打开：
+
+```text
+http://localhost:5000
+```
 
 ## 💻 电脑版使用
 
@@ -57,7 +64,7 @@ python app.py
 
 这个版本适合长期放在 iPhone 上使用。它打开的是 GitHub 的 HTTPS 地址，不依赖电脑热点，也不需要电脑一直开着。
 
-首次部署后，iPhone Safari 打开：
+iPhone Safari 打开：
 
 ```
 https://yinlan996996.github.io/dan-ci-qi/
@@ -66,6 +73,7 @@ https://yinlan996996.github.io/dan-ci-qi/
 然后点底部分享 ⬆️ → **添加到主屏幕**。
 
 > 首次打开需要联网。打开后，词汇和答题进度保存在 iPhone 本地。
+> 如果你换了手机或想迁移数据，使用“导出数据文件 / 导入数据文件”。
 
 ### 本地在线版（需同一网络）
 
@@ -113,6 +121,16 @@ http://<电脑IP>:5000
 - **打印**：可保存为 PDF
 
 导出表格包含：英文 | 中文 | 掌握状态 | 错误次数
+
+### 数据迁移
+
+在“导出”里可以下载一个 JSON 数据文件，里面包含：
+
+- 词汇
+- 答题记录
+- 当前进度
+
+把这个文件传到另一台设备后，再用“导入数据文件”恢复即可。
 
 ---
 
