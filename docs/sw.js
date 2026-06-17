@@ -1,4 +1,4 @@
-var CACHE = 'dan-ci-qi-pages-v1';
+var CACHE = 'dan-ci-qi-pages-v2';
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
