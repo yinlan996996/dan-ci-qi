@@ -53,13 +53,14 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--p);box-sha
 .qcard{background:var(--c);border-radius:var(--r);padding:28px 20px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.12);margin-bottom:20px}
 .qcard p:first-child{font-size:.85rem;color:var(--t2);margin-bottom:12px}
 .qcard p:last-child{font-size:2rem;font-weight:800}
-.options{display:flex;flex-direction:column;gap:10px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .options button{width:100%;padding:16px;font-size:1.05rem;font-family:inherit;background:var(--c);border:2px solid var(--b);border-radius:var(--r);cursor:pointer;min-height:52px}
 .options button:active{transform:scale(.98)}
 .options button.correct{border-color:var(--s);background:var(--sl);color:var(--s);font-weight:700}
 .options button.wrong{border-color:var(--d);background:var(--dl);color:var(--d);font-weight:700;animation:shake .4s}
 .options button.reveal{border-color:var(--s);background:var(--sl)}
 .options button.disabled{pointer-events:none;opacity:.8}
+.unknown-btn{grid-column:1/-1;justify-self:center;margin-top:14px;width:min(55%,260px);background:#FFF7E8!important;border-color:#F59E0B!important;color:#92400E!important}
 .fb{text-align:center;padding:16px;margin-top:12px;border-radius:var(--r)}
 .fb.ok{background:var(--sl)}
 .fb.no{background:var(--dl)}
@@ -451,12 +452,17 @@ function sq(){
   var others=gw().filter(function(x){return x.id!==w.id}).map(function(x){return x.chinese});
   var uo=[];others.forEach(function(o){if(uo.indexOf(o)<0)uo.push(o)});
   var dist=[];
-  if(uo.length>=3){dist=pick(uo,3)}else{dist=uo;while(dist.length<3)dist.push('——')}
+  if(uo.length>=7){dist=pick(uo,7)}else{dist=uo;while(dist.length<7)dist.push('——')}
   var opts=[correct].concat(dist);shuffle(opts);
   qs._opts=opts;
   var c=document.getElementById('opts');
   c.innerHTML=opts.map(function(o){return '<button>'+esc(o)+'</button>'}).join('');
   c.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){answer(b,w)})});
+  var unknown=document.createElement('button');
+  unknown.className='unknown-btn';
+  unknown.textContent='我不会';
+  unknown.addEventListener('click',function(){answer(unknown,w,true)});
+  c.appendChild(unknown);
   uprog(qs.idx+1,qs.words.length);
   updateSwipeHint()
 }
@@ -476,7 +482,7 @@ function showQuestionAt(idx){
     document.getElementById('bnext').classList.add('hide');
     document.getElementById('qfb').classList.remove('hide','ok','no');
     var c=document.getElementById('opts');
-    c.innerHTML=h.opts.map(function(o){return '<button class="disabled">'+esc(o)+'</button>'}).join('');
+    c.innerHTML=h.opts.map(function(o){return '<button class="disabled">'+esc(o)+'</button>'}).join('')+'<button class="unknown-btn disabled">我不会</button>';
     c.querySelectorAll('button').forEach(function(b){
       if(b.textContent===h.word.chinese)b.classList.add('reveal');
       if(b.textContent===h.sel&&!h.ok)b.classList.add('wrong');
@@ -492,10 +498,10 @@ function showQuestionAt(idx){
   updateSwipeHint()
 }
 
-function answer(btn,word){
+function answer(btn,word,unknown){
   if(qs.answered)return;qs.answered=true;
   var sel=btn.textContent;
-  var ok=word.chinese===sel;
+  var ok=!unknown&&word.chinese===sel;
   qs.history[qs.idx]={word:word,opts:qs._opts,sel:sel,ok:ok};
   var rec={wordId:word.id,isCorrect:ok};
   qs.answers.push(rec);
