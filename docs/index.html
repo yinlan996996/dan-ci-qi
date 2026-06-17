@@ -594,16 +594,6 @@ function fq(){
   re()
 }
 
-function saveQuizState2(){
-  if(!qs||!qs.words||qs.words.length===0)return;
-  var state={wordIds:qs.words.map(function(w){return w.id}),idx:qs.idx,history:qs.history,answers:qs.answers,mode:qs._mode};
-  localStorage[pk('quizState')]=JSON.stringify(state)
-}
-function loadQuizState2(){
-  try{return JSON.parse(localStorage[pk('quizState')]||'null')}catch(e){return null}
-}
-function clearQuizState2(){delete localStorage[pk('quizState')]}
-
 document.getElementById('bquit').addEventListener('click',function(){
   if(qs.answered||qs.history.length>0){
     saveQuizState2();toast('进度已保存')
