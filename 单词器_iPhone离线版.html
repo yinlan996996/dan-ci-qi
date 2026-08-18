@@ -53,13 +53,14 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:var(--p);box-sha
 .qcard{background:var(--c);border-radius:var(--r);padding:28px 20px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.12);margin-bottom:20px}
 .qcard p:first-child{font-size:.85rem;color:var(--t2);margin-bottom:12px}
 .qcard p:last-child{font-size:2rem;font-weight:800}
-.options{display:flex;flex-direction:column;gap:10px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .options button{width:100%;padding:16px;font-size:1.05rem;font-family:inherit;background:var(--c);border:2px solid var(--b);border-radius:var(--r);cursor:pointer;min-height:52px}
 .options button:active{transform:scale(.98)}
 .options button.correct{border-color:var(--s);background:var(--sl);color:var(--s);font-weight:700}
 .options button.wrong{border-color:var(--d);background:var(--dl);color:var(--d);font-weight:700;animation:shake .4s}
 .options button.reveal{border-color:var(--s);background:var(--sl)}
 .options button.disabled{pointer-events:none;opacity:.8}
+.unknown-btn{grid-column:1/-1;justify-self:center;margin-top:14px;width:min(55%,260px);background:#FFF7E8!important;border-color:#F59E0B!important;color:#92400E!important}
 .fb{text-align:center;padding:16px;margin-top:12px;border-radius:var(--r)}
 .fb.ok{background:var(--sl)}
 .fb.no{background:var(--dl)}
@@ -87,11 +88,28 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 .up-area{border:2px dashed var(--b);border-radius:var(--r);padding:24px;text-align:center;cursor:pointer}
 .up-area span{font-size:2rem}
 .up-area p{font-size:.85rem;color:var(--t2);margin-top:6px}
+#qactive{min-height:calc(100vh - 150px);touch-action:pan-y}
+.hulu-settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.hulu-settings label{font-size:.8rem;color:var(--t2)}
+.hulu-settings input{margin-top:4px}
+.hulu-note{font-size:.8rem;color:var(--t2);line-height:1.6}
+.hulu-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 16px}
+.hulu-word{padding:10px 12px;background:var(--bg);border-radius:var(--rs);min-width:0}
+.hulu-word strong{display:block;overflow-wrap:anywhere}
+.hulu-word span{display:block;color:var(--t2);font-size:.85rem;margin-top:2px;overflow-wrap:anywhere}
+.hulu-status{text-align:center;font-size:.9rem;color:var(--t2);margin:8px 0 14px}
+.hulu-progress{display:flex;align-items:center;gap:10px;margin:8px 0 14px}
+.hulu-progress>div{flex:1;height:8px;background:var(--b);border-radius:4px;overflow:hidden}
+.hulu-progress>div>div{height:100%;background:var(--s);border-radius:4px;transition:width .3s}
+.hulu-progress>span{font-size:.8rem;font-weight:600;color:var(--t2);white-space:nowrap}
+#hquiz{min-height:calc(100vh - 150px);touch-action:pan-y}
+#hquiz .options{margin-top:12px}
+.hulu-rule{padding:12px;background:#FFF7E8;border-radius:var(--rs);color:#92400E;font-size:.85rem;line-height:1.55;margin-bottom:12px}
 </style>
 </head>
 <body>
 
-<div class="header"><h1>📖 单词器</h1><span class="badge" id="wc">0 词</span></div>
+<div class="header"><h1>📖 单词器</h1><div style="display:flex;align-items:center;gap:6px"><select id="psel" style="font-size:.8rem;padding:4px 8px;border-radius:8px;border:1px solid var(--b);background:var(--c);max-width:100px" onchange="switchProfile(this.value)"></select><button class="btn btn-do btn-sm" id="bdelp" style="font-size:.7rem;padding:4px 8px;min-height:28px" title="删除当前档案">🗑</button><span class="badge" id="wc">0 词</span></div></div>
 
 <div class="main">
 
@@ -106,7 +124,7 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 <div class="card">
 <h3>📝 粘贴文本</h3>
 <p class="hint">每行：英文 中文（空格或Tab分隔）</p>
-<textarea id="ptext" rows="4" placeholder="apple 苹果"></textarea>
+<textarea id="paste-text" rows="4" placeholder="apple 苹果"></textarea>
 <button class="btn btn-p btn-full" id="bpaste" style="margin-top:8px">导入文本</button>
 </div>
 <div class="card">
@@ -129,13 +147,14 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 </div>
 <!-- 总进度条 -->
 <div style="margin-bottom:12px">
-  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:.8rem;color:var(--t2)">📊 掌握进度</span><span style="font-size:.8rem;font-weight:600" id="mpct">0%</span></div>
+  <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:.8rem;color:var(--t2)">📊 筛查进度</span><span style="font-size:.8rem;font-weight:600" id="mpct">0%</span></div>
   <div style="height:8px;background:var(--b);border-radius:4px;overflow:hidden;display:flex">
     <div id="mbar" style="height:100%;background:var(--s);border-radius:4px;transition:width.3s;width:0"></div>
   </div>
   <div style="font-size:.7rem;color:var(--t2);margin-top:3px" id="mtext">已掌握 0 / 0</div>
 </div>
 <button class="btn btn-p btn-lg btn-full" id="bstart">开始筛查</button>
+<button class="btn btn-o btn-lg btn-full hide" id="bresume">📂 继续上次</button>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
   <span class="hint" style="margin:0" id="qcount"></span>
   <button class="btn btn-do btn-sm" id="breset">重置进度</button>
@@ -161,6 +180,44 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 </div>
 </div>
 
+<!-- 葫芦记忆法 -->
+<div id="t-hulu" class="tab">
+<h2>🎃 葫芦记忆法</h2>
+<div id="hsetup" class="card">
+<div class="hulu-settings">
+  <label>每日词数<input type="number" id="hdaily" min="1" step="20" value="1000"></label>
+  <label>目标轮数<input type="number" id="hrounds" min="1" max="8" value="5"></label>
+</div>
+<div class="hulu-rule">每组 20 个单词。先记忆整组，再随机测验；20 词答对 16 个以上才可以进入下一组。</div>
+<p class="hulu-status" id="hstatus">还没有葫芦记忆计划</p>
+<button class="btn btn-p btn-lg btn-full" id="hstart">开始葫芦记忆法</button>
+<button class="btn btn-o btn-lg btn-full hide" id="hnext-round" style="margin-top:8px">开始下一轮</button>
+<button class="btn btn-do btn-sm btn-full hide" id="hnew" style="margin-top:8px">新建今日计划</button>
+</div>
+
+<div id="hmemory" class="card hide">
+<p class="hulu-status" id="hmemory-title"></p>
+<p class="hulu-note">先看完这一组单词和中文释义。准备好后点击“记忆完成”，系统会把顺序打乱开始测验。</p>
+<div id="hmemory-list" class="hulu-list"></div>
+<button class="btn btn-p btn-lg btn-full" id="hmemory-done">记忆完成，开始测验</button>
+</div>
+
+<div id="hquiz" class="hide">
+<button class="btn btn-o btn-sm" id="hquit" style="margin-bottom:12px">← 退出并保存</button>
+<div class="hulu-progress"><div><div id="hpfill"></div></div><span id="hptext">0/0</span></div>
+<div class="qcard"><p>请选择中文释义：</p><p id="hword">——</p></div>
+<div id="hopts" class="options"></div>
+<div class="fb hide" id="hfb"><p id="hfbi"></p><p id="hfbt"></p><p id="hfbans"></p></div>
+<button class="btn btn-p btn-full hide" id="hnext-question">下一题</button>
+</div>
+
+<div id="hresult" class="card hide">
+<div class="result"><p id="hresult-icon">🎯</p><h3 id="hresult-title"></h3></div>
+<p class="hulu-status" id="hresult-text"></p>
+<button class="btn btn-p btn-lg btn-full" id="hresult-action"></button>
+</div>
+</div>
+
 <!-- 错题本 -->
 <div id="t-errors" class="tab">
 <h2>📕 错题本</h2>
@@ -182,6 +239,15 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 <button class="btn btn-p btn-lg btn-full" id="bexpcsv">📄 导出 CSV</button>
 <button class="btn btn-o btn-lg btn-full" id="bexppdf">🖨️ 打印 / 保存为 PDF</button>
 </div>
+<div class="card" style="margin-top:12px">
+<h3>📦 数据迁移</h3>
+<p class="hint">导出全部数据（词汇+进度）到另一台设备</p>
+<div style="display:flex;flex-direction:column;gap:8px">
+<button class="btn btn-p btn-full" id="bexpdata">📤 导出数据文件</button>
+<button class="btn btn-o btn-full" id="bimpdata">📥 导入数据文件</button>
+<input type="file" id="finpdata" accept=".json" style="display:none">
+</div>
+</div>
 </div>
 
 </div>
@@ -189,6 +255,7 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 <nav class="nav" id="bnav">
 <button class="active" data-t="import"><span>📥</span><span>导入</span></button>
 <button data-t="quiz"><span>🎯</span><span>筛查</span></button>
+<button data-t="hulu"><span>🎃</span><span>葫芦</span></button>
 <button data-t="errors"><span>📕</span><span>错题本</span></button>
 <button data-t="export"><span>📤</span><span>导出</span></button>
 </nav>
@@ -196,19 +263,59 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 <div class="toast hide" id="toast"></div>
 
 <script>
-// ====== 存储 ======
-function gw(){try{return JSON.parse(localStorage.words||'[]')}catch(e){return[]}}
-function sw(w){localStorage.words=JSON.stringify(w)}
-function ga(){try{return JSON.parse(localStorage.answers||'[]')}catch(e){return[]}}
-function sa(a){localStorage.answers=JSON.stringify(a)}
+// ====== 档案（Profile）管理 ======
+function profiles(){try{return JSON.parse(localStorage._profiles||'["默认"]')}catch(e){return['默认']}}
+function sp(p){localStorage._profiles=JSON.stringify(p)}
+function curProfile(){return localStorage._cur||'默认'}
+function setProfile(n){localStorage._cur=n}
+function pk(key){return 'p_'+curProfile()+'_'+key}
+function gw(){try{return JSON.parse(localStorage[pk('words')]||'[]')}catch(e){return[]}}
+function sw(w){localStorage[pk('words')]=JSON.stringify(w)}
+function ga(){try{return JSON.parse(localStorage[pk('answers')]||'[]')}catch(e){return[]}}
+function sa(a){localStorage[pk('answers')]=JSON.stringify(a)}
+function saveQuizState2(){
+  if(!qs||!qs.words||qs.words.length===0)return;
+  var s={wordIds:qs.words.map(function(w){return w.id}),idx:qs.idx,history:qs.history,answers:qs.answers,mode:qs._mode};
+  localStorage[pk('quizState')]=JSON.stringify(s)
+}
+function loadQuizState2(){
+  try{return JSON.parse(localStorage[pk('quizState')]||'null')}catch(e){return null}
+}
+function clearQuizState2(){delete localStorage[pk('quizState')]}
 function gid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
+
+// ====== 档案切换 ======
+function buildProfileUI(){
+  var sel=document.getElementById('psel'),ps=profiles(),cp=curProfile();
+  sel.innerHTML=ps.map(function(p){return p===cp?'<option value="'+esc(p)+'" selected>'+esc(p)+'</option>':'<option value="'+esc(p)+'">'+esc(p)+'</option>'}).join('');
+  sel.innerHTML+='<option value="__new__">+ 新建</option>'
+}
+function switchProfile(name){
+  if(name==='__new__'){var n=prompt('输入新档案名称：');if(!n||!n.trim()){buildProfileUI();return}
+    n=n.trim();var ps=profiles();if(ps.indexOf(n)>=0){toast('已存在同名档案');buildProfileUI();return}
+    ps.push(n);sp(ps);setProfile(n);refreshAll();toast('已创建: '+n);return
+  }
+  setProfile(name);refreshAll()
+}
+function refreshAll(){buildProfileUI();rl();re();uc();ux();uq();hu()}
+function deleteProfile(name){
+  if(!confirm('确定删除档案 ❝'+name+'❞ ？所有数据将丢失。'))return;
+  var ps=profiles().filter(function(p){return p!==name});
+  if(ps.length===0){toast('至少保留一个档案');return}
+  // 清除该档案的 localStorage
+  var keys=['words','answers','quizState','huluState','huluAnswers'];
+  keys.forEach(function(k){delete localStorage['p_'+name+'_'+k]});
+  sp(ps);if(curProfile()===name){setProfile(ps[0])}
+  refreshAll();toast('已删除: '+name)
+}
+buildProfileUI();
 
 // ====== Toast ======
 var tt;
 function toast(m){var e=document.getElementById('toast');e.textContent=m;e.classList.remove('hide');clearTimeout(tt);tt=setTimeout(function(){e.classList.add('hide')},2000)}
 
 // ====== Tab ======
-var tabs=['import','quiz','errors','export'];
+var tabs=['import','quiz','hulu','errors','export'];
 function stab(n){
   document.querySelectorAll('.tab').forEach(function(s){s.classList.remove('active')});
   document.getElementById('t-'+n).classList.add('active');
@@ -216,6 +323,7 @@ function stab(n){
   if(n==='import')rl();
   if(n==='errors')re();
   if(n==='quiz')uq();
+  if(n==='hulu')hu();
   if(n==='export')ux();
 }
 document.querySelectorAll('#bnav button').forEach(function(b){b.addEventListener('click',function(){stab(this.dataset.t)})});
@@ -254,9 +362,9 @@ document.getElementById('filein').addEventListener('change',function(){
 
 // 文本粘贴
 document.getElementById('bpaste').addEventListener('click',function(){
-  var text=document.getElementById('ptext').value.trim();
+  var text=document.getElementById('paste-text').value.trim();
   if(!text){toast('请先粘贴文本');return}
-  imp(parse(text));document.getElementById('ptext').value=''
+  imp(parse(text));document.getElementById('paste-text').value=''
 });
 
 function parse(text){
@@ -289,13 +397,16 @@ function imp(items){
 
 // 清空
 document.getElementById('bclear').addEventListener('click',function(){
-  if(!confirm('确定删除全部单词？'))return;sw([]);sa([]);rl();re();uc();toast('已清空')
+  if(!confirm('确定删除全部单词？'))return;sw([]);sa([]);clearQuizState2();clearHuluState();clearHuluAnswers();rl();re();uc();hu();toast('已清空')
 });
+
+// 删除当前档案
+document.getElementById('bdelp').addEventListener('click',function(){deleteProfile(curProfile())});
 
 // 重置进度
 document.getElementById('breset').addEventListener('click',function(){
   if(!confirm('确定重置所有筛查进度？单词保留，答题记录清空。'))return;
-  sa([]);re();uq();toast('进度已重置')
+  sa([]);clearQuizState2();re();uq();toast('进度已重置，将开始新一轮')
 });
 
 // ====== 筛查 ======
@@ -315,30 +426,70 @@ function uq(){
   var errs=new Set(answers.filter(function(a){return!a.isCorrect}).map(function(a){return a.wordId}));
   var ec=words.filter(function(w){return errs.has(w.id)}).length;
   document.getElementById('qcount').textContent='词库 '+words.length+' 个，错题 '+ec+' 个';
-  // 计算掌握进度：每个词取最后一次答题结果
-  var last={};
-  answers.forEach(function(a){last[a.wordId]=a.isCorrect});
-  var mastered=0;
-  words.forEach(function(w){if(last[w.id]===true)mastered++});
+  var screened=new Set(answers.map(function(a){return a.wordId}));
+  var sc=screened.size;
   var total=words.length;
-  var pct=total>0?Math.round(mastered/total*100):0;
+  var pct=total>0?Math.round(sc/total*100):0;
   document.getElementById('mpct').textContent=pct+'%';
   document.getElementById('mbar').style.width=pct+'%';
-  document.getElementById('mtext').textContent='已掌握 '+mastered+' / '+total
+  document.getElementById('mtext').textContent='已筛查 '+sc+' / '+total;
+  // 显示继续上次按钮
+  var saved=loadQuizState2();
+  var resumeBtn=document.getElementById('bresume');
+  if(saved&&saved.wordIds&&saved.idx<saved.wordIds.length){
+    resumeBtn.classList.remove('hide');
+    var done=saved.answers?saved.answers.length:0;
+    resumeBtn.textContent='📂 继续上次（已做 '+done+'/'+saved.wordIds.length+'）'
+  }else{resumeBtn.classList.add('hide')}
 }
 
+// 继续上次
+document.getElementById('bresume').addEventListener('click',function(){
+  var saved=loadQuizState2();
+  if(!saved||!saved.wordIds){toast('没有可恢复的进度');return}
+  var words=gw();
+  var pool=saved.wordIds.map(function(id){return words.find(function(w){return w.id===id})}).filter(Boolean);
+  if(pool.length===0){toast('词库已变化，无法恢复');clearQuizState2();uq();return}
+  qs={words:pool,idx:saved.idx||0,answered:true,answers:saved.answers||[],history:saved.history||{},_opts:[]};
+  document.getElementById('qsetup').classList.add('hide');
+  document.getElementById('qactive').classList.remove('hide');
+  document.getElementById('qfinish').classList.add('hide');
+  showQuestionAt(qs.idx);
+  toast('已恢复，从第 '+(qs.idx+1)+' 题继续')
+});
+
 document.getElementById('bstart').addEventListener('click',function(){
+  // 如果有保存的进度，直接继续
+  var saved=loadQuizState2();
+  if(saved&&saved.wordIds&&saved.idx<saved.wordIds.length){
+    var words=gw();
+    var pool=saved.wordIds.map(function(id){return words.find(function(w){return w.id===id})}).filter(Boolean);
+    if(pool.length>0){
+      qs={words:pool,idx:saved.idx||0,answered:true,answers:saved.answers||[],history:saved.history||{},_opts:[]};
+      document.getElementById('qsetup').classList.add('hide');
+      document.getElementById('qactive').classList.remove('hide');
+      document.getElementById('qfinish').classList.add('hide');
+      showQuestionAt(qs.idx);
+      toast('从第 '+(qs.idx+1)+' 题继续');
+      return
+    }
+  }
+  // 没有保存进度，开始新一轮
   var words=gw();
   if(words.length<4){toast('至少需要4个单词');return}
   var mode=document.querySelector('input[name="mode"]:checked').value;
-  var pool=words.slice();
+  var pool=[];
   if(mode==='errors'){
     var errs=new Set(ga().filter(function(a){return!a.isCorrect}).map(function(a){return a.wordId}));
     pool=words.filter(function(w){return errs.has(w.id)});
-    if(pool.length<4){toast('错题不足4个');return}
+    if(pool.length===0){toast('没有错题');return}
+  }else{
+    var done=new Set(ga().map(function(a){return a.wordId}));
+    pool=words.filter(function(w){return !done.has(w.id)});
+    if(pool.length===0){toast('全部筛查完成！');return}
   }
   shuffle(pool);
-  qs={words:pool,idx:0,answered:false,answers:[],history:[],_opts:[]};
+  qs={words:pool,idx:0,answered:false,answers:[],history:[],_opts:[],_mode:mode};
   document.getElementById('qsetup').classList.add('hide');
   document.getElementById('qactive').classList.remove('hide');
   document.getElementById('qfinish').classList.add('hide');
@@ -357,12 +508,17 @@ function sq(){
   var others=gw().filter(function(x){return x.id!==w.id}).map(function(x){return x.chinese});
   var uo=[];others.forEach(function(o){if(uo.indexOf(o)<0)uo.push(o)});
   var dist=[];
-  if(uo.length>=3){dist=pick(uo,3)}else{dist=uo;while(dist.length<3)dist.push('——')}
+  if(uo.length>=7){dist=pick(uo,7)}else{dist=uo;while(dist.length<7)dist.push('——')}
   var opts=[correct].concat(dist);shuffle(opts);
   qs._opts=opts;
   var c=document.getElementById('opts');
   c.innerHTML=opts.map(function(o){return '<button>'+esc(o)+'</button>'}).join('');
   c.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){answer(b,w)})});
+  var unknown=document.createElement('button');
+  unknown.className='unknown-btn';
+  unknown.textContent='我不会';
+  unknown.addEventListener('click',function(){answer(unknown,w,true)});
+  c.appendChild(unknown);
   uprog(qs.idx+1,qs.words.length);
   updateSwipeHint()
 }
@@ -382,7 +538,7 @@ function showQuestionAt(idx){
     document.getElementById('bnext').classList.add('hide');
     document.getElementById('qfb').classList.remove('hide','ok','no');
     var c=document.getElementById('opts');
-    c.innerHTML=h.opts.map(function(o){return '<button class="disabled">'+esc(o)+'</button>'}).join('');
+    c.innerHTML=h.opts.map(function(o){return '<button class="disabled">'+esc(o)+'</button>'}).join('')+'<button class="unknown-btn disabled">我不会</button>';
     c.querySelectorAll('button').forEach(function(b){
       if(b.textContent===h.word.chinese)b.classList.add('reveal');
       if(b.textContent===h.sel&&!h.ok)b.classList.add('wrong');
@@ -398,14 +554,15 @@ function showQuestionAt(idx){
   updateSwipeHint()
 }
 
-function answer(btn,word){
+function answer(btn,word,unknown){
   if(qs.answered)return;qs.answered=true;
   var sel=btn.textContent;
-  var ok=word.chinese===sel;
+  var ok=!unknown&&word.chinese===sel;
   qs.history[qs.idx]={word:word,opts:qs._opts,sel:sel,ok:ok};
   var rec={wordId:word.id,isCorrect:ok};
   qs.answers.push(rec);
   var all=ga();all.push(rec);sa(all);
+  saveQuizState2(); // 每题都自动保存，防止意外退出丢失进度
   document.querySelectorAll('#opts button').forEach(function(b){
     b.classList.add('disabled');
     if(b.textContent===word.chinese)b.classList.add('reveal');
@@ -432,12 +589,12 @@ function answer(btn,word){
 }
 
 function goNext(){
-  showQuestionAt(qs.idx+1)
+  showQuestionAt(qs.idx+1);saveQuizState2()
 }
 
 function goBack(){
   if(qs.idx<=0)return;
-  showQuestionAt(qs.idx-1)
+  showQuestionAt(qs.idx-1);saveQuizState2()
 }
 
 function updateSwipeHint(){
@@ -451,15 +608,20 @@ function updateSwipeHint(){
   }else{hint.classList.add('hide')}
 }
 
-// ====== 滑动手势（全屏范围） ======
+// ====== 滑动手势（答题页全屏范围） ======
 var touchStartX=0,touchStartY=0;
 (function(){
-  var zone=document.getElementById('qactive');
+  var zone=document;
   zone.addEventListener('touchstart',function(e){touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY},{passive:true});
   zone.addEventListener('touchend',function(e){
     var dx=e.changedTouches[0].clientX-touchStartX;
     var dy=e.changedTouches[0].clientY-touchStartY;
     if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx)*1.5)return;
+    if(!document.getElementById('hquiz').classList.contains('hide')){
+      if(dx<0&&hs&&hs.answered)hgoNext();else if(dx>0)hgoBack();
+      return
+    }
+    if(document.getElementById('qactive').classList.contains('hide'))return;
     if(!qs)return;
     if(dx<0&&!qs.answered)return; // 未答完不能前进
     if(dx<0)goNext();else goBack()
@@ -471,8 +633,24 @@ function uprog(cur,total){var p=Math.round(cur/total*100);document.getElementByI
 function fq(){
   var ok=qs.answers.filter(function(a){return a.isCorrect}).length;
   var total=qs.words.length,no=total-ok;
-  // 注意：每题答完已实时保存，这里不再重复保存
-  toast('完成！正确'+ok+'，错误'+no);
+  clearQuizState2();
+  // 有错词 → 自动开始错词轮
+  if(no>0){
+    var words=gw();
+    var wrongIds=qs.answers.filter(function(a){return!a.isCorrect}).map(function(a){return a.wordId});
+    var pool=words.filter(function(w){return wrongIds.indexOf(w.id)>=0});
+    if(pool.length>0){
+      shuffle(pool);
+      qs={words:pool,idx:0,answered:false,answers:[],history:[],_opts:[],_mode:'errors'};
+      document.getElementById('qactive').classList.remove('hide');
+      document.getElementById('qfinish').classList.add('hide');
+      sq();
+      toast('✅ '+ok+' / ❌ '+no+' → 开始错词轮（'+pool.length+'题）');
+      return
+    }
+  }
+  // 全部正确或没有错词
+  toast('🎉 全部通过！正确'+ok+'题');
   document.getElementById('qactive').classList.add('hide');
   document.getElementById('qfinish').classList.remove('hide');
   document.getElementById('rtotal').textContent=total;
@@ -482,10 +660,22 @@ function fq(){
   re()
 }
 
+function saveQuizState2(){
+  if(!qs||!qs.words||qs.words.length===0)return;
+  var state={wordIds:qs.words.map(function(w){return w.id}),idx:qs.idx,history:qs.history,answers:qs.answers,mode:qs._mode};
+  localStorage[pk('quizState')]=JSON.stringify(state)
+}
+function loadQuizState2(){
+  try{return JSON.parse(localStorage[pk('quizState')]||'null')}catch(e){return null}
+}
+function clearQuizState2(){delete localStorage[pk('quizState')]}
+
 document.getElementById('bquit').addEventListener('click',function(){
-  if(!qs.answered||confirm('确定退出？已答题目已保存。')){
-    document.getElementById('qactive').classList.add('hide');document.getElementById('qsetup').classList.remove('hide')
+  if(qs.answered||qs.history.length>0){
+    saveQuizState2();toast('进度已保存')
   }
+  document.getElementById('qactive').classList.add('hide');document.getElementById('qsetup').classList.remove('hide');
+  uq()
 });
 function retryQuiz(mode){
   document.querySelector('input[name="mode"][value="'+mode+'"]').checked=true;
@@ -499,9 +689,153 @@ function retryQuiz(mode){
 document.getElementById('bretry').addEventListener('click',function(){retryQuiz('errors')});
 document.getElementById('bretryall').addEventListener('click',function(){retryQuiz('all')});
 
+// ====== 葫芦记忆法 ======
+var hs=null;
+function loadHuluState(){try{return JSON.parse(localStorage[pk('huluState')]||'null')}catch(e){return null}}
+function saveHuluState(){if(hs)localStorage[pk('huluState')]=JSON.stringify(hs)}
+function clearHuluState(){delete localStorage[pk('huluState')];hs=null}
+function loadHuluAnswers(){try{return JSON.parse(localStorage[pk('huluAnswers')]||'[]')}catch(e){return[]}}
+function saveHuluAnswer(record){var all=loadHuluAnswers();all.push(record);localStorage[pk('huluAnswers')]=JSON.stringify(all)}
+function clearHuluAnswers(){delete localStorage[pk('huluAnswers')]}
+function hshuffle(a){var r=a.slice();shuffle(r);return r}
+function hplanWords(){
+  var words=gw(),daily=parseInt(document.getElementById('hdaily').value,10)||1000;
+  daily=Math.max(1,Math.min(words.length,daily));
+  return words.slice(0,daily)
+}
+function hgroup(){
+  if(!hs)return [];
+  var start=hs.groupIndex*hs.groupSize;
+  return hs.wordIds.slice(start,start+hs.groupSize).map(function(id){return gw().find(function(w){return w.id===id})}).filter(Boolean)
+}
+function hgroupCount(){return hs?Math.ceil(hs.wordIds.length/hs.groupSize):0}
+function hu(){
+  var saved=loadHuluState();
+  hs=saved||null;
+  var words=gw(),state=hs;
+  var status=document.getElementById('hstatus'),start=document.getElementById('hstart'),next=document.getElementById('hnext-round'),newBtn=document.getElementById('hnew');
+  if(!words.length){status.textContent='请先导入单词';start.textContent='开始葫芦记忆法';start.classList.remove('hide');next.classList.add('hide');newBtn.classList.add('hide');return}
+  if(!state||!state.wordIds||!state.wordIds.length){
+    status.textContent='词库 '+words.length+' 个；将按每天 '+(parseInt(document.getElementById('hdaily').value,10)||1000)+' 个创建计划';
+    start.textContent='开始葫芦记忆法';start.classList.remove('hide');next.classList.add('hide');newBtn.classList.add('hide');return
+  }
+  var count=hgroupCount(),rounds=state.targetRounds||5;
+  if(state.phase==='done'){
+    status.textContent='第 '+state.round+' 轮完成，共 '+state.wordIds.length+' 个词。可以开始下一轮（目标 '+rounds+' 轮）。';
+    start.classList.add('hide');next.classList.remove('hide');newBtn.classList.remove('hide');return
+  }
+  var phaseText=state.phase==='memory'?'记忆中':state.phase==='quiz'?'测验中':'本组待处理';
+  status.textContent='第 '+state.round+' / '+rounds+' 轮 · 第 '+(state.groupIndex+1)+' / '+count+' 组 · '+phaseText;
+  start.textContent='继续葫芦记忆法';start.classList.remove('hide');next.classList.add('hide');newBtn.classList.remove('hide')
+}
+function hshowOnly(name){
+  ['hsetup','hmemory','hquiz','hresult'].forEach(function(id){document.getElementById(id).classList.toggle('hide',id!==name)})
+}
+function hnewPlan(){
+  var words=hplanWords();
+  if(!words.length){toast('请先导入单词');return}
+  var rounds=parseInt(document.getElementById('hrounds').value,10)||5;
+  rounds=Math.max(1,Math.min(8,rounds));
+  hs={wordIds:words.map(function(w){return w.id}),groupSize:20,groupIndex:0,round:1,targetRounds:rounds,phase:'memory',quizIndex:0,quizOrder:[],answers:[],history:[],attempts:0};
+  saveHuluState();hstartGroup()
+}
+function hstartGroup(){
+  if(!hs)return;
+  hs.phase='memory';hs.quizIndex=0;hs.quizOrder=[];hs.answers=[];hs.history=[];hs.answered=false;saveHuluState();
+  var group=hgroup();
+  document.getElementById('hmemory-title').textContent='第 '+hs.round+' 轮 · 第 '+(hs.groupIndex+1)+' / '+hgroupCount()+' 组（'+group.length+' 词）';
+  document.getElementById('hmemory-list').innerHTML=group.map(function(w){return '<div class="hulu-word"><strong>'+esc(w.english)+'</strong><span>'+esc(w.chinese)+'</span></div>'}).join('');
+  hshowOnly('hmemory')
+}
+function hresume(){
+  if(!hs)return;
+  if(hs.phase==='memory'){hstartGroup();return}
+  if(hs.phase==='quiz'){hshowOnly('hquiz');hshowQuizAt(hs.quizIndex);return}
+  if(hs.phase==='group_result'){hshowResult();return}
+  if(hs.phase==='done'){hshowOnly('hsetup');hu()}
+}
+document.getElementById('hstart').addEventListener('click',function(){
+  hs=loadHuluState();
+  if(hs){hresume();return}
+  hnewPlan()
+});
+document.getElementById('hnew').addEventListener('click',function(){
+  if(!confirm('新建今日计划会保留普通筛查记录，但会替换当前葫芦计划，确定吗？'))return;
+  clearHuluState();hnewPlan()
+});
+document.getElementById('hnext-round').addEventListener('click',function(){
+  if(!hs||hs.phase!=='done')return;
+  if(hs.round>=(hs.targetRounds||5)){toast('已完成目标轮数');return}
+  hs.round++;hs.groupIndex=0;hs.phase='memory';saveHuluState();hstartGroup()
+});
+document.getElementById('hmemory-done').addEventListener('click',function(){
+  if(!hs)return;
+  hs.phase='quiz';hs.quizOrder=hshuffle(hgroup().map(function(w){return w.id}));hs.quizIndex=0;hs.answers=[];hs.history=[];hs.attempts=(hs.attempts||0)+1;saveHuluState();hshowOnly('hquiz');hshowQuizAt(0)
+});
+function hoptions(word){
+  var all=hgroup().map(function(w){return w.chinese}).filter(function(c){return c!==word.chinese});
+  var unique=[];all.forEach(function(c){if(unique.indexOf(c)<0)unique.push(c)});
+  var opts=[word.chinese].concat(hshuffle(unique).slice(0,7));
+  var fills=['——','……','其他'];
+  fills.forEach(function(f){if(opts.length<8&&opts.indexOf(f)<0)opts.push(f)});
+  while(opts.length<8)opts.push('暂无释义');
+  return hshuffle(opts.slice(0,8))
+}
+function hshowQuizAt(index){
+  if(!hs)return;
+  var group=hgroup();
+  if(index>=hs.quizOrder.length){hfinishGroup();return}
+  hs.quizIndex=index;hs.answered=!!hs.history[index];
+  var word=gw().find(function(w){return w.id===hs.quizOrder[index]});
+  if(!word){hgoNext();return}
+  var history=hs.history[index],opts=history?history.opts:hoptions(word);
+  document.getElementById('hword').textContent=word.english;
+  document.getElementById('hfb').classList.toggle('hide',!history);
+  document.getElementById('hnext-question').classList.toggle('hide',!history);
+  document.getElementById('hnext-question').textContent=index===hs.quizOrder.length-1?'查看本组结果':'下一题';
+  var c=document.getElementById('hopts');
+  c.innerHTML=opts.map(function(o){return '<button class="'+(history?'disabled':'')+'">'+esc(o)+'</button>'}).join('')+'<button class="unknown-btn '+(history?'disabled':'')+'">我不会</button>';
+  c.querySelectorAll('button').forEach(function(b){
+    if(history){if(b.textContent===word.chinese)b.classList.add('reveal');if(b.textContent===history.sel&&!history.ok)b.classList.add('wrong');if(b.textContent===history.sel&&history.ok)b.classList.add('correct')}
+    else if(!b.classList.contains('unknown-btn'))b.addEventListener('click',function(){hanswer(b,word,false,opts)});
+  });
+  if(!history)c.querySelector('.unknown-btn').addEventListener('click',function(){hanswer(this,word,true,opts)});
+  if(history){document.getElementById('hfbi').textContent=history.ok?'✅':'❌';document.getElementById('hfbt').textContent=history.ok?'回答正确！':'回答错误';document.getElementById('hfbans').textContent=history.ok?'':'正确答案：'+word.chinese}
+  hprogress(index+1,hs.quizOrder.length);saveHuluState()
+}
+function hanswer(btn,word,unknown,opts){
+  if(!hs||hs.answered)return;
+  hs.answered=true;
+  var selected=btn.textContent,ok=!unknown&&selected===word.chinese;
+  hs.history[hs.quizIndex]={wordId:word.id,sel:selected,ok:ok,opts:opts};hs.answers.push({wordId:word.id,isCorrect:ok});saveHuluAnswer({wordId:word.id,isCorrect:ok});saveHuluState();
+  document.querySelectorAll('#hopts button').forEach(function(b){b.classList.add('disabled');if(b.textContent===word.chinese)b.classList.add('reveal');if(b===btn&&!ok)b.classList.add('wrong');if(b===btn&&ok)b.classList.add('correct')});
+  var fb=document.getElementById('hfb');fb.classList.remove('hide','ok','no');fb.classList.add(ok?'ok':'no');document.getElementById('hfbi').textContent=ok?'✅':'❌';document.getElementById('hfbt').textContent=ok?'回答正确！':'回答错误';document.getElementById('hfbans').textContent=ok?'':'正确答案：'+word.chinese;
+  var next=document.getElementById('hnext-question');next.classList.remove('hide');next.textContent=hs.quizIndex===hs.quizOrder.length-1?'查看本组结果':'下一题';next.onclick=function(){if(hs.quizIndex===hs.quizOrder.length-1)hfinishGroup();else hgoNext()};saveHuluState()
+}
+function hgoNext(){if(!hs||!hs.answered)return;if(hs.quizIndex+1>=hs.quizOrder.length){hfinishGroup();return}hshowQuizAt(hs.quizIndex+1)}
+function hgoBack(){if(!hs||hs.quizIndex<=0)return;hshowQuizAt(hs.quizIndex-1)}
+function hprogress(cur,total){var p=total?Math.round(cur/total*100):0;document.getElementById('hpfill').style.width=p+'%';document.getElementById('hptext').textContent=cur+'/'+total}
+function hfinishGroup(){
+  if(!hs)return;
+  var correct=hs.answers.filter(function(a){return a.isCorrect}).length,total=hs.quizOrder.length,need=Math.ceil(total*.8),passed=correct>=need;
+  hs.phase='group_result';hs.result={correct:correct,total:total,need:need,passed:passed};saveHuluState();hshowResult()
+}
+function hshowResult(){
+  var r=hs.result;if(!r){hresume();return}
+  hshowOnly('hresult');document.getElementById('hresult-icon').textContent=r.passed?'✅':'🔁';document.getElementById('hresult-title').textContent=r.passed?'本组达标！':'本组还需要复习';document.getElementById('hresult-text').textContent='本组 '+r.correct+' / '+r.total+'，需要至少 '+r.need+' 个正确（80%）';
+  var action=document.getElementById('hresult-action');action.textContent=r.passed?'进入下一组':'重新记忆这 20 个词';action.onclick=function(){
+    if(!r.passed){hstartGroup();return}
+    hs.groupIndex++;hs.phase=hs.groupIndex>=hgroupCount()?'done':'memory';hs.result=null;saveHuluState();
+    if(hs.phase==='done'){hshowOnly('hsetup');hu();toast('🎉 第 '+hs.round+' 轮全部完成')}
+    else hstartGroup()
+  }
+}
+document.getElementById('hquit').addEventListener('click',function(){saveHuluState();hshowOnly('hsetup');hu();toast('葫芦记忆法进度已保存')});
+document.getElementById('hnext-question').addEventListener('click',function(){if(hs&&hs.quizIndex===hs.quizOrder.length-1)hfinishGroup();else hgoNext()});
+
 // ====== 错题本 ======
 function re(){
-  var words=gw(),answers=ga();
+  var words=gw(),answers=ga().concat(loadHuluAnswers());
   var m={};
   answers.filter(function(a){return!a.isCorrect}).forEach(function(a){m[a.wordId]=(m[a.wordId]||0)+1});
   var errs=Object.keys(m).map(function(k){var w=words.find(function(x){return x.id===k});return w?{english:w.english,chinese:w.chinese,count:m[k]}:null}).filter(Boolean).sort(function(a,b){return b.count-a.count});
@@ -514,13 +848,13 @@ function re(){
 // ====== 导出 ======
 function ux(){
   var words=gw();
-  var errs=new Set(ga().filter(function(a){return!a.isCorrect}).map(function(a){return a.wordId}));
+  var errs=new Set(ga().concat(loadHuluAnswers()).filter(function(a){return!a.isCorrect}).map(function(a){return a.wordId}));
   var ec=words.filter(function(w){return errs.has(w.id)}).length;
   document.getElementById('xcount').textContent='错题 '+ec+' 个 | 全部单词 '+words.length+' 个'
 }
 
 function ged(type){
-  var words=gw(),answers=ga();
+  var words=gw(),answers=ga().concat(loadHuluAnswers());
   var m={};
   answers.filter(function(a){return!a.isCorrect}).forEach(function(a){m[a.wordId]=(m[a.wordId]||0)+1});
   if(type==='errors'){
@@ -552,6 +886,35 @@ document.getElementById('bexppdf').addEventListener('click',function(){
   var w=window.open('','_blank');w.document.write(h);w.document.close();setTimeout(function(){w.print()},500)
 });
 
+// 数据迁移
+document.getElementById('bexpdata').addEventListener('click',function(){
+  var data={words:gw(),answers:ga(),quizState:loadQuizState2(),huluState:loadHuluState(),huluAnswers:loadHuluAnswers()};
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='单词器数据备份.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);toast('数据文件已下载')
+});
+document.getElementById('bimpdata').addEventListener('click',function(){document.getElementById('finpdata').click()});
+document.getElementById('finpdata').addEventListener('change',function(){
+  var file=this.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(!data.words){toast('无效的数据文件');return}
+      if(!confirm('将覆盖当前全部数据（词汇+进度），确定导入？'))return;
+      sw(data.words||[]);sa(data.answers||[]);
+      if(data.quizState)localStorage[pk('quizState')]=JSON.stringify(data.quizState);
+      else clearQuizState2();
+      if(data.huluState)localStorage[pk('huluState')]=JSON.stringify(data.huluState);
+      else clearHuluState();
+      localStorage[pk('huluAnswers')]=JSON.stringify(data.huluAnswers||[]);
+      rl();re();uc();ux();hu();toast('导入成功！'+data.words.length+' 个单词已恢复')
+    }catch(ex){toast('文件解析失败')}
+    this.value=''
+  };
+  reader.readAsText(file,'utf-8')
+});
+
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
 // ====== 初始化 ======
@@ -565,7 +928,7 @@ function init(){
       sw(items);toast('已加载 '+items.length+' 个单词')
     }catch(e){}
   }
-  rl();uc();re();ux()
+  buildProfileUI();rl();uc();re();ux();hu()
 }
 init();
 
