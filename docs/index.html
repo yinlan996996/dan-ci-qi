@@ -195,6 +195,7 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 <button class="btn btn-do btn-sm btn-full hide" id="hnew" style="margin-top:8px">新建今日计划</button>
 </div>
 <div id="hmemory" class="card hide">
+<button class="btn btn-o btn-sm" id="hmemory-quit" style="margin-bottom:12px">← 退出并保存</button>
 <p class="hulu-status" id="hmemory-title"></p>
 <p class="hulu-note">先看完这一组单词和中文释义。准备好后点击“记忆完成”，系统会把顺序打乱开始测验。</p>
 <div id="hmemory-list" class="hulu-list"></div>
@@ -685,9 +686,12 @@ function loadHuluAnswers(){try{return JSON.parse(localStorage[pk('huluAnswers')]
 function saveHuluAnswer(record){var all=loadHuluAnswers();all.push(record);localStorage[pk('huluAnswers')]=JSON.stringify(all)}
 function clearHuluAnswers(){delete localStorage[pk('huluAnswers')]}
 function hshuffle(a){var r=a.slice();shuffle(r);return r}
-function hplanWords(){
+function hgetDaily(){
   var words=gw(),daily=parseInt(document.getElementById('hdaily').value,10)||1000;
-  daily=Math.max(1,Math.min(words.length,daily));
+  return Math.max(1,Math.min(words.length,daily))
+}
+function hplanWords(){
+  var words=gw(),daily=hgetDaily();
   return words.slice(0,daily)
 }
 function hgroup(){
@@ -699,6 +703,8 @@ function hgroupCount(){return hs?Math.ceil(hs.wordIds.length/hs.groupSize):0}
 function hu(){
   var saved=loadHuluState();
   hs=saved||null;
+  if(saved&&!saved.dailyCount){saved.dailyCount=saved.wordIds?saved.wordIds.length:0;saveHuluState()}
+  if(saved&&saved.dailyCount)document.getElementById('hdaily').value=saved.dailyCount;
   var words=gw(),state=hs;
   var status=document.getElementById('hstatus'),start=document.getElementById('hstart'),next=document.getElementById('hnext-round'),newBtn=document.getElementById('hnew');
   if(!words.length){status.textContent='请先导入单词';start.textContent='开始葫芦记忆法';start.classList.remove('hide');next.classList.add('hide');newBtn.classList.add('hide');return}
@@ -712,7 +718,7 @@ function hu(){
     start.classList.add('hide');next.classList.remove('hide');newBtn.classList.remove('hide');return
   }
   var phaseText=state.phase==='memory'?'记忆中':state.phase==='quiz'?'测验中':'本组待处理';
-  status.textContent='第 '+state.round+' / '+rounds+' 轮 · 第 '+(state.groupIndex+1)+' / '+count+' 组 · '+phaseText;
+  status.textContent='每日 '+(state.dailyCount||state.wordIds.length)+' 词 · 第 '+state.round+' / '+rounds+' 轮 · 第 '+(state.groupIndex+1)+' / '+count+' 组 · '+phaseText;
   start.textContent='继续葫芦记忆法';start.classList.remove('hide');next.classList.add('hide');newBtn.classList.remove('hide')
 }
 function hshowOnly(name){['hsetup','hmemory','hquiz','hresult'].forEach(function(id){document.getElementById(id).classList.toggle('hide',id!==name)})}
@@ -721,7 +727,7 @@ function hnewPlan(){
   if(!words.length){toast('请先导入单词');return}
   var rounds=parseInt(document.getElementById('hrounds').value,10)||5;
   rounds=Math.max(1,Math.min(8,rounds));
-  hs={wordIds:words.map(function(w){return w.id}),groupSize:20,groupIndex:0,round:1,targetRounds:rounds,phase:'memory',quizIndex:0,quizOrder:[],answers:[],history:[],attempts:0};
+  hs={wordIds:words.map(function(w){return w.id}),dailyCount:words.length,groupSize:20,groupIndex:0,round:1,targetRounds:rounds,phase:'memory',quizIndex:0,quizOrder:[],answers:[],history:[],attempts:0};
   saveHuluState();hstartGroup()
 }
 function hstartGroup(){
@@ -739,7 +745,14 @@ function hresume(){
   if(hs.phase==='group_result'){hshowResult();return}
   if(hs.phase==='done'){hshowOnly('hsetup');hu()}
 }
-document.getElementById('hstart').addEventListener('click',function(){hs=loadHuluState();if(hs){hresume();return}hnewPlan()});
+document.getElementById('hstart').addEventListener('click',function(){
+  hs=loadHuluState();
+  if(hs&&hs.dailyCount!==hgetDaily()){
+    if(!confirm('每日词数已改为 '+hgetDaily()+' 个，将创建新的葫芦计划并保留旧错题记录，确定吗？'))return;
+    clearHuluState();hnewPlan();return
+  }
+  if(hs){hresume();return}hnewPlan()
+});
 document.getElementById('hnew').addEventListener('click',function(){if(!confirm('新建今日计划会保留普通筛查记录，但会替换当前葫芦计划，确定吗？'))return;clearHuluState();hnewPlan()});
 document.getElementById('hnext-round').addEventListener('click',function(){if(!hs||hs.phase!=='done')return;if(hs.round>=(hs.targetRounds||5)){toast('已完成目标轮数');return}hs.round++;hs.groupIndex=0;hs.phase='memory';saveHuluState();hstartGroup()});
 document.getElementById('hmemory-done').addEventListener('click',function(){if(!hs)return;hs.phase='quiz';hs.quizOrder=hshuffle(hgroup().map(function(w){return w.id}));hs.quizIndex=0;hs.answers=[];hs.history=[];hs.attempts=(hs.attempts||0)+1;saveHuluState();hshowOnly('hquiz');hshowQuizAt(0)});
@@ -777,7 +790,9 @@ function hgoBack(){if(!hs||hs.quizIndex<=0)return;hshowQuizAt(hs.quizIndex-1)}
 function hprogress(cur,total){var p=total?Math.round(cur/total*100):0;document.getElementById('hpfill').style.width=p+'%';document.getElementById('hptext').textContent=cur+'/'+total}
 function hfinishGroup(){if(!hs)return;var correct=hs.answers.filter(function(a){return a.isCorrect}).length,total=hs.quizOrder.length,need=Math.ceil(total*.8),passed=correct>=need;hs.phase='group_result';hs.result={correct:correct,total:total,need:need,passed:passed};saveHuluState();hshowResult()}
 function hshowResult(){var r=hs.result;if(!r){hresume();return}hshowOnly('hresult');document.getElementById('hresult-icon').textContent=r.passed?'✅':'🔁';document.getElementById('hresult-title').textContent=r.passed?'本组达标！':'本组还需要复习';document.getElementById('hresult-text').textContent='本组 '+r.correct+' / '+r.total+'，需要至少 '+r.need+' 个正确（80%）';var action=document.getElementById('hresult-action');action.textContent=r.passed?'进入下一组':'重新记忆这 20 个词';action.onclick=function(){if(!r.passed){hstartGroup();return}hs.groupIndex++;hs.phase=hs.groupIndex>=hgroupCount()?'done':'memory';hs.result=null;saveHuluState();if(hs.phase==='done'){hshowOnly('hsetup');hu();toast('🎉 第 '+hs.round+' 轮全部完成')}else hstartGroup()}}
-document.getElementById('hquit').addEventListener('click',function(){saveHuluState();hshowOnly('hsetup');hu();toast('葫芦记忆法进度已保存')});
+function hleave(){saveHuluState();hshowOnly('hsetup');hu();toast('葫芦记忆法进度已保存')}
+document.getElementById('hmemory-quit').addEventListener('click',hleave);
+document.getElementById('hquit').addEventListener('click',hleave);
 document.getElementById('hnext-question').addEventListener('click',function(){if(hs&&hs.quizIndex===hs.quizOrder.length-1)hfinishGroup();else hgoNext()});
 
 // ====== 错题本 ======
