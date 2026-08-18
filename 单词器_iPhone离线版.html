@@ -185,10 +185,10 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 <h2>🎃 葫芦记忆法</h2>
 <div id="hsetup" class="card">
 <div class="hulu-settings">
-  <label>每日词数<input type="number" id="hdaily" min="1" step="20" value="1000"></label>
+  <label>每日词数<input type="number" id="hdaily" min="20" step="20" value="1000"></label>
   <label>目标轮数<input type="number" id="hrounds" min="1" max="8" value="5"></label>
 </div>
-<div class="hulu-rule">每组 20 个单词。先记忆整组，再随机测验；20 词答对 16 个以上才可以进入下一组。</div>
+<div class="hulu-rule">每组固定 20 个单词，每日词数至少 20 个。先记忆整组，再随机测验；20 词答对 16 个以上才可以进入下一组。</div>
 <p class="hulu-status" id="hstatus">还没有葫芦记忆计划</p>
 <button class="btn btn-p btn-lg btn-full" id="hstart">开始葫芦记忆法</button>
 <button class="btn btn-o btn-lg btn-full hide" id="hnext-round" style="margin-top:8px">开始下一轮</button>
@@ -701,7 +701,10 @@ function clearHuluAnswers(){delete localStorage[pk('huluAnswers')]}
 function hshuffle(a){var r=a.slice();shuffle(r);return r}
 function hgetDaily(){
   var words=gw(),daily=parseInt(document.getElementById('hdaily').value,10)||1000;
-  return Math.max(1,Math.min(words.length,daily))
+  var minimum=words.length<20?words.length:20;
+  daily=Math.max(minimum,Math.min(words.length,daily));
+  document.getElementById('hdaily').value=daily;
+  return daily
 }
 function hplanWords(){
   var words=gw(),daily=hgetDaily();
@@ -832,8 +835,8 @@ function hfinishGroup(){
 }
 function hshowResult(){
   var r=hs.result;if(!r){hresume();return}
-  hshowOnly('hresult');document.getElementById('hresult-icon').textContent=r.passed?'✅':'🔁';document.getElementById('hresult-title').textContent=r.passed?'本组达标！':'本组还需要复习';document.getElementById('hresult-text').textContent='本组 '+r.correct+' / '+r.total+'，需要至少 '+r.need+' 个正确（80%）';
-  var action=document.getElementById('hresult-action');action.textContent=r.passed?'进入下一组':'重新记忆这 20 个词';action.onclick=function(){
+  hshowOnly('hresult');document.getElementById('hresult-icon').textContent=r.passed?'✅':'🔁';document.getElementById('hresult-title').textContent=r.passed?'本组达标！':'本组还需要复习';document.getElementById('hresult-text').textContent='答对 '+r.correct+' / '+r.total+'，需要至少 '+r.need+' 个正确（80%）';
+  var action=document.getElementById('hresult-action');action.textContent=r.passed?'进入下一组':'重新记忆这 '+r.total+' 个词';action.onclick=function(){
     if(!r.passed){hstartGroup();return}
     hs.groupIndex++;hs.phase=hs.groupIndex>=hgroupCount()?'done':'memory';hs.result=null;saveHuluState();
     if(hs.phase==='done'){hshowOnly('hsetup');hu();toast('🎉 第 '+hs.round+' 轮全部完成')}
