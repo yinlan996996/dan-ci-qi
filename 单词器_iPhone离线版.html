@@ -186,9 +186,10 @@ th{font-size:.8rem;font-weight:600;color:var(--t2)}
 <div id="hsetup" class="card">
 <div class="hulu-settings">
   <label>每日词数<input type="number" id="hdaily" min="20" step="20" value="1000"></label>
+  <label>每组词数<input type="number" id="hgroup-size" min="1" max="100" step="1" value="20"></label>
   <label>目标轮数<input type="number" id="hrounds" min="1" max="8" value="5"></label>
 </div>
-<div class="hulu-rule">每组固定 20 个单词，每日词数至少 20 个。先记忆整组，再随机测验；20 词答对 16 个以上才可以进入下一组。</div>
+<div class="hulu-rule">每组词数可以自己设置，每日词数至少 20 个。先记忆整组，再随机测验；达到 80% 才可以进入下一组。</div>
 <p class="hulu-status" id="hstatus">还没有葫芦记忆计划</p>
 <button class="btn btn-p btn-lg btn-full" id="hstart">开始葫芦记忆法</button>
 <button class="btn btn-o btn-lg btn-full hide" id="hnext-round" style="margin-top:8px">开始下一轮</button>
@@ -706,6 +707,12 @@ function hgetDaily(){
   document.getElementById('hdaily').value=daily;
   return daily
 }
+function hgetGroupSize(){
+  var daily=hgetDaily(),group=parseInt(document.getElementById('hgroup-size').value,10)||20;
+  group=Math.max(1,Math.min(daily,100,group));
+  document.getElementById('hgroup-size').value=group;
+  return group
+}
 function hplanWords(){
   var words=gw(),daily=hgetDaily();
   return words.slice(0,daily)
@@ -721,6 +728,7 @@ function hu(){
   hs=saved||null;
   if(saved&&!saved.dailyCount){saved.dailyCount=saved.wordIds?saved.wordIds.length:0;saveHuluState()}
   if(saved&&saved.dailyCount)document.getElementById('hdaily').value=saved.dailyCount;
+  if(saved&&saved.groupSize)document.getElementById('hgroup-size').value=saved.groupSize;
   var words=gw(),state=hs;
   var status=document.getElementById('hstatus'),start=document.getElementById('hstart'),next=document.getElementById('hnext-round'),newBtn=document.getElementById('hnew');
   if(!words.length){status.textContent='请先导入单词';start.textContent='开始葫芦记忆法';start.classList.remove('hide');next.classList.add('hide');newBtn.classList.add('hide');return}
@@ -734,7 +742,7 @@ function hu(){
     start.classList.add('hide');next.classList.remove('hide');newBtn.classList.remove('hide');return
   }
   var phaseText=state.phase==='memory'?'记忆中':state.phase==='quiz'?'测验中':'本组待处理';
-  status.textContent='每日 '+(state.dailyCount||state.wordIds.length)+' 词 · 第 '+state.round+' / '+rounds+' 轮 · 第 '+(state.groupIndex+1)+' / '+count+' 组 · '+phaseText;
+  status.textContent='每日 '+(state.dailyCount||state.wordIds.length)+' 词 · 每组 '+(state.groupSize||20)+' 词 · 第 '+state.round+' / '+rounds+' 轮 · 第 '+(state.groupIndex+1)+' / '+count+' 组 · '+phaseText;
   start.textContent='继续葫芦记忆法';start.classList.remove('hide');next.classList.add('hide');newBtn.classList.remove('hide')
 }
 function hshowOnly(name){
@@ -745,7 +753,7 @@ function hnewPlan(){
   if(!words.length){toast('请先导入单词');return}
   var rounds=parseInt(document.getElementById('hrounds').value,10)||5;
   rounds=Math.max(1,Math.min(8,rounds));
-  hs={wordIds:words.map(function(w){return w.id}),dailyCount:words.length,groupSize:20,groupIndex:0,round:1,targetRounds:rounds,phase:'memory',quizIndex:0,quizOrder:[],answers:[],history:[],attempts:0};
+  hs={wordIds:words.map(function(w){return w.id}),dailyCount:words.length,groupSize:hgetGroupSize(),groupIndex:0,round:1,targetRounds:rounds,phase:'memory',quizIndex:0,quizOrder:[],answers:[],history:[],attempts:0};
   saveHuluState();hstartGroup()
 }
 function hstartGroup(){
@@ -765,8 +773,8 @@ function hresume(){
 }
 document.getElementById('hstart').addEventListener('click',function(){
   hs=loadHuluState();
-  if(hs&&hs.dailyCount!==hgetDaily()){
-    if(!confirm('每日词数已改为 '+hgetDaily()+' 个，将创建新的葫芦计划并保留旧错题记录，确定吗？'))return;
+  if(hs&&(hs.dailyCount!==hgetDaily()||hs.groupSize!==hgetGroupSize())){
+    if(!confirm('计划设置已改变（每日 '+hgetDaily()+' 词，每组 '+hgetGroupSize()+' 词），将创建新的葫芦计划并保留旧错题记录，确定吗？'))return;
     clearHuluState();hnewPlan();return
   }
   if(hs){hresume();return}
