@@ -1,4 +1,4 @@
-var CACHE = 'dan-ci-qi-v4';
+var CACHE = 'yl-wordloop-v1';
 
 self.addEventListener('install', function(event) {
   event.waitUntil(

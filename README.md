@@ -1,11 +1,11 @@
-# 单词筛查背诵器
+# YL's WordLoop
 
 一个给个人使用的单词筛查和背诵工具。支持导入词库、八选一筛查、错词记录、进度保存、多档案、数据迁移，以及 iPhone / iPad / 电脑互用。
 
 在线使用地址：
 
 ```text
-https://yinlan996996.github.io/dan-ci-qi/
+https://yinlan996996.github.io/yl-wordloop/
 ```
 
 ## 推荐使用方式
@@ -15,7 +15,7 @@ https://yinlan996996.github.io/dan-ci-qi/
 推荐直接使用 GitHub Pages 版本，不需要电脑一直开着：
 
 ```text
-https://yinlan996996.github.io/dan-ci-qi/
+https://yinlan996996.github.io/yl-wordloop/
 ```
 
 第一次打开需要联网。打开后可以把它添加到主屏幕，当成一个独立 App 使用。
@@ -34,7 +34,7 @@ https://yinlan996996.github.io/dan-ci-qi/
 电脑也可以直接打开在线版：
 
 ```text
-https://yinlan996996.github.io/dan-ci-qi/
+https://yinlan996996.github.io/yl-wordloop/
 ```
 
 如果要运行本地 Flask 版，需要安装 Python，然后在项目目录执行：
@@ -169,7 +169,7 @@ accurate 准确的
 如果用的是 GitHub Pages 地址，正常不依赖电脑网络：
 
 ```text
-https://yinlan996996.github.io/dan-ci-qi/
+https://yinlan996996.github.io/yl-wordloop/
 ```
 
 如果打不开，先用 Safari 直接打开这个网址，不要从旧桌面图标进。确认能打开后，再重新添加到主屏幕。
@@ -190,7 +190,7 @@ https://yinlan996996.github.io/dan-ci-qi/
 ## 本地项目结构
 
 ```text
-dan-ci-qi/
+yl-wordloop/
 ├─ app.py                         # Flask 本地版
 ├─ requirements.txt               # Python 依赖
 ├─ docs/                          # GitHub Pages 静态版

@@ -1,4 +1,4 @@
-var CACHE = 'dan-ci-qi-pages-v5';
+var CACHE = 'yl-wordloop-pages-v1';
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
